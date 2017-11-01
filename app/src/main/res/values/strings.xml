@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">GaS</string>
+    <string name="btnUpdate">Update</string>
+    <string name="toast_connect">Connection error</string>
+</resources>
