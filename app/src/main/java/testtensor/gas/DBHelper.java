@@ -150,4 +150,10 @@ public class DBHelper extends SQLiteOpenHelper{
         cursor.close();
         return children;
     }
+
+    public void removeModels(SQLiteDatabase db){
+        db.delete("models", null, null);
+        db.delete("treePath", null, null);
+        db.delete("sqlite_sequence", null, null);
+    }
 }

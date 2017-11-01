@@ -1,6 +1,7 @@
 package testtensor.gas;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.database.sqlite.SQLiteDatabase;
 import android.support.constraint.ConstraintLayout;
 import android.support.v7.app.AppCompatActivity;
@@ -19,9 +20,9 @@ import java.util.List;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-import testtensor.gas.client.InitRetrofit;
+import testtensor.gas.client.App;
 import testtensor.gas.client.Model;
-import testtensor.gas.client.RetroFitApi;
+import testtensor.gas.client.JsonStubApi;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener{
 
@@ -32,8 +33,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     SQLiteDatabase db;
     Button btnUpdate;
     ConstraintLayout constLayout;
+    SharedPreferences prefs = null;
 
-    RetroFitApi retroFitApi = InitRetrofit.getApi();
+    JsonStubApi jsonStubApi = App.getApi();
     Callback<List<Model>> callback = new Callback<List<Model>>() {
         @Override
         public void onResponse(Call<List<Model>> call, Response<List<Model>> response) {
@@ -43,18 +45,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             else Log.d(TAG, "Response NULL");
 
             //Построение списка с сайта и сохранение его в БД
-            db.delete("models", null, null);
-            db.delete("treePath", null, null);
-            db.delete("sqlite_sequence", null, null);
+            dbHelper.removeModels(db);
             dbHelper.insertModels(db, models, true, 0);
-            TreeContainer treeContainer = new TreeContainer(context);
-            treeContainer.insertModels(models);
-            AndroidTreeView treeView = new AndroidTreeView(context, treeContainer.getTree());
-            treeView.setDefaultAnimation(true);
-            treeView.setDefaultContainerStyle(R.style.TreeNodeStyleCustom);
-            treeView.setDefaultViewHolder(Holder.class);
             constLayout.removeAllViewsInLayout();
-            constLayout.addView(treeView.getView());
+            constLayout.addView(showTree(models).getView());
         }
 
         @Override
@@ -76,24 +70,39 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         btnUpdate = (Button) findViewById(R.id.btnUpdate);
         btnUpdate.setOnClickListener(this);
         dbHelper = new DBHelper(this);
+        prefs = getSharedPreferences("testtensor.GaS", MODE_PRIVATE);
 
         //Построение списка из БД
         db = dbHelper.getWritableDatabase();
-        TreeContainer treeContainer = new TreeContainer(this);
-        treeContainer.insertModels(dbHelper.getModels(db,true,0));
-        AndroidTreeView treeView = new AndroidTreeView(getApplication(), treeContainer.getTree());
-        treeView.setDefaultAnimation(true);
-        treeView.setDefaultContainerStyle(R.style.TreeNodeStyleCustom);
-        treeView.setDefaultViewHolder(Holder.class);
-        constLayout.addView(treeView.getView());
+        constLayout.addView(showTree(dbHelper.getModels(db,true,0)).getView());
     }
 
     @Override
     public void onClick(View v) {
         switch(v.getId()){
             case R.id.btnUpdate:
-                retroFitApi.getData().enqueue(callback);
+                jsonStubApi.getData().enqueue(callback);
             break;
         }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        //Первый запуск приложения
+        if (prefs.getBoolean("firstrun", true)) {
+            jsonStubApi.getData().enqueue(callback);
+            prefs.edit().putBoolean("firstrun", false).commit();
+        }
+    }
+
+    public AndroidTreeView showTree(List<Model> models){
+        TreeContainer treeContainer = new TreeContainer(context);
+        treeContainer.insertModels(models);
+        AndroidTreeView treeView = new AndroidTreeView(context, treeContainer.getTree());
+        treeView.setDefaultAnimation(true);
+        treeView.setDefaultContainerStyle(R.style.TreeNodeStyleCustom);
+        treeView.setDefaultViewHolder(Holder.class);
+        return treeView;
     }
 }

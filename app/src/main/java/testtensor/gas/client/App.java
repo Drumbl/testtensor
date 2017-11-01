@@ -4,15 +4,14 @@ import android.app.Application;
 
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
-import testtensor.gas.client.RetroFitApi;
 
 /**
  * Created by Drumbl on 19.10.2017.
  */
 
-public class InitRetrofit extends Application {
+public class App extends Application {
 
-    private static RetroFitApi retroFitApi;
+    private static JsonStubApi jsonStubApi;
     private Retrofit retrofit;
 
     @Override
@@ -23,9 +22,9 @@ public class InitRetrofit extends Application {
                 .baseUrl("http://jsonstub.com/")
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
-        retroFitApi = retrofit.create(RetroFitApi.class);
+        jsonStubApi = retrofit.create(JsonStubApi.class);
     }
-    public static RetroFitApi getApi(){
-        return retroFitApi;
+    public static JsonStubApi getApi(){
+        return jsonStubApi;
     }
 }
