@@ -37,7 +37,6 @@ public class DBHelper extends SQLiteOpenHelper{
                 + "parent INTEGER,"
                 + "child INTEGER"
                 + ");");
-
     }
 
     @Override
@@ -91,15 +90,7 @@ public class DBHelper extends SQLiteOpenHelper{
             if(cursor != null) {
                 if (cursor.moveToFirst()) {
                     do {
-                        Model model = new Model();
-
-                        model.setTitle(cursor.getString(cursor.getColumnIndex("title")));
-                        model.setImg(cursor.getString(cursor.getColumnIndex("img")));
-                        model.setId(cursor.getInt(cursor.getColumnIndex("id")));
-                        if(getListChildren(db, cursor.getInt(cursor.getColumnIndex("_id"))).size()>0){
-                            model.setSubs(getModels(db, false, cursor.getInt(cursor.getColumnIndex("_id"))));
-                        }
-                        models.add(model);
+                        models.add(setDB(db, cursor));
                     }while (cursor.moveToNext());
                 }
             }
@@ -112,15 +103,7 @@ public class DBHelper extends SQLiteOpenHelper{
                 if(cursor != null) {
                     if(cursor.moveToFirst()) {
                         do{
-                            Model model = new Model();
-
-                            model.setTitle(cursor.getString(cursor.getColumnIndex("title")));
-                            model.setImg(cursor.getString(cursor.getColumnIndex("img")));
-                            model.setId(cursor.getInt(cursor.getColumnIndex("id")));
-                            if(getListChildren(db, cursor.getInt(cursor.getColumnIndex("_id"))).size()>0){
-                                model.setSubs(getModels(db, false, cursor.getInt(cursor.getColumnIndex("_id"))));
-                            }
-                            models.add(model);
+                            models.add(setDB(db, cursor));
                         }while (cursor.moveToNext());
                     }
                 }
@@ -149,6 +132,17 @@ public class DBHelper extends SQLiteOpenHelper{
         }
         cursor.close();
         return children;
+    }
+
+    private Model setDB(SQLiteDatabase db, Cursor cursor){
+        Model model = new Model();
+        model.setTitle(cursor.getString(cursor.getColumnIndex("title")));
+        model.setImg(cursor.getString(cursor.getColumnIndex("img")));
+        model.setId(cursor.getInt(cursor.getColumnIndex("id")));
+        if(getListChildren(db, cursor.getInt(cursor.getColumnIndex("_id"))).size()>0){
+            model.setSubs(getModels(db, false, cursor.getInt(cursor.getColumnIndex("_id"))));
+        }
+        return model;
     }
 
     public void removeModels(SQLiteDatabase db){
