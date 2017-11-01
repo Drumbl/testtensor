@@ -18,7 +18,7 @@ import testtensor.gas.client.Model;
 public class DBHelper extends SQLiteOpenHelper{
 
     DBHelper(Context context) {
-        super(context, "/storage/sdcard0/modelsDB", null, 1);
+        super(context, "modelsDB", null, 1);
     }
 
     @Override
